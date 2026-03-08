@@ -1,0 +1,1396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FakeDetect - Counterfeit Product & Drug Awareness</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #f0f7ff 0%, #f5f3ff 100%);
+            min-height: 100vh;
+            color: #1a1a2e;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #0f5a7f 0%, #1a8fd8 100%);
+            color: white;
+            padding: 2rem 1rem;
+            box-shadow: 0 4px 12px rgba(15, 90, 127, 0.15);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+        }
+
+        .nav-btn.active {
+            background: white;
+            color: #0f5a7f;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .nav-btn:not(.active) {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .nav-btn:not(.active):hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .content-section {
+            display: none;
+            animation: fadeIn 0.4s ease-in;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .main-content {
+            padding: 2rem 0;
+        }
+
+        .card {
+            background: white;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            margin-bottom: 1.5rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            color: #0f5a7f;
+        }
+
+        .card-subtitle {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 1rem;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .search-box input {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 0.5rem;
+            font-size: 0.95rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: #1a8fd8;
+            background: #f9fbff;
+        }
+
+        .search-box button {
+            padding: 0.75rem 1.5rem;
+            background: #1a8fd8;
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.3s ease;
+        }
+
+        .search-box button:hover {
+            background: #0f5a7f;
+        }
+
+        .product-item {
+            border-left: 4px solid #e0e0e0;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            background: #f9fafb;
+            border-radius: 0.5rem;
+        }
+
+        .product-item.high-risk {
+            border-left-color: #dc2626;
+            background: #fee2e2;
+        }
+
+        .product-item.medium-risk {
+            border-left-color: #f59e0b;
+            background: #fef3c7;
+        }
+
+        .product-item.low-risk {
+            border-left-color: #16a34a;
+            background: #dbeafe;
+        }
+
+        .risk-badge {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            border-radius: 9999px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .risk-badge.high {
+            background: #dc2626;
+            color: white;
+        }
+
+        .risk-badge.medium {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .risk-badge.low {
+            background: #16a34a;
+            color: white;
+        }
+
+        .risk-badge.safe {
+            background: #059669;
+            color: white;
+        }
+
+        .flag-list {
+            list-style: none;
+            margin: 1rem 0;
+        }
+
+        .flag-list li {
+            padding: 0.5rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+            font-size: 0.9rem;
+        }
+
+        .flag-list li:before {
+            content: "⚠";
+            position: absolute;
+            left: 0;
+            color: #dc2626;
+        }
+
+        .flag-list.safe li:before {
+            content: "✓";
+            color: #16a34a;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .course-card {
+            background: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .course-card:hover {
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+            transform: translateY(-2px);
+        }
+
+        .course-header {
+            background: linear-gradient(135deg, #0f5a7f 0%, #1a8fd8 100%);
+            padding: 1.5rem;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            cursor: pointer;
+        }
+
+        .course-header:hover {
+            background: linear-gradient(135deg, #0d4a68 0%, #1578c0 100%);
+        }
+
+        .course-info {
+            flex: 1;
+        }
+
+        .course-icon {
+            font-size: 2rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .course-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 0.3rem;
+            letter-spacing: -0.3px;
+        }
+
+        .course-duration {
+            font-size: 0.85rem;
+            opacity: 0.9;
+            font-weight: 500;
+        }
+
+        .course-toggle {
+            font-size: 1.5rem;
+            transition: transform 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 2rem;
+            height: 2rem;
+        }
+
+        .course-toggle.expanded {
+            transform: rotate(180deg);
+        }
+
+        .course-content {
+            display: none;
+            padding: 1.5rem;
+            background: #f9fafb;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .course-content.active {
+            display: block;
+        }
+
+        .course-description {
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: #374151;
+            margin-bottom: 1.5rem;
+        }
+
+        .course-lessons {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .lesson-item {
+            background: white;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border-left: 3px solid #1a8fd8;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .lesson-item:hover {
+            background: #dbeafe;
+            transform: translateX(4px);
+        }
+
+        .lesson-item.completed {
+            border-left-color: #16a34a;
+            opacity: 0.7;
+        }
+
+        .lesson-item.completed::after {
+            content: ' ✓';
+            color: #16a34a;
+            font-weight: 700;
+        }
+
+        .lesson-number {
+            display: inline-block;
+            background: #1a8fd8;
+            color: white;
+            padding: 0.2rem 0.6rem;
+            border-radius: 0.3rem;
+            font-size: 0.8rem;
+            font-weight: 700;
+            margin-right: 0.5rem;
+        }
+
+        .lesson-title {
+            font-weight: 600;
+            color: #0f5a7f;
+            margin-bottom: 0.3rem;
+        }
+
+        .lesson-preview {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .course-progress {
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .progress-label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #0f5a7f, #1a8fd8);
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+
+        .feature-box {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .feature-icon {
+            font-size: 2rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .feature-title {
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: #0f5a7f;
+        }
+
+        .feature-text {
+            font-size: 0.9rem;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .tab-btn {
+            padding: 0.75rem 1rem;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.3s ease;
+            margin-bottom: -2px;
+        }
+
+        .tab-btn.active {
+            color: #0f5a7f;
+            border-bottom-color: #0f5a7f;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .checklist {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .checklist-item {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem;
+            background: #f9fafb;
+            border-radius: 0.5rem;
+        }
+
+        .checklist-item input[type="checkbox"] {
+            width: 1.25rem;
+            height: 1.25rem;
+            cursor: pointer;
+            accent-color: #1a8fd8;
+        }
+
+        .checklist-item label {
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .footer {
+            background: #f3f4f6;
+            padding: 2rem 1rem;
+            text-align: center;
+            margin-top: 3rem;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .qr-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .qr-modal.active {
+            display: flex;
+        }
+
+        .qr-container {
+            background: white;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .qr-header {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: #0f5a7f;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .qr-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+            padding: 0;
+            width: 2rem;
+            height: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .qr-close:hover {
+            color: #0f5a7f;
+        }
+
+        #qrVideo {
+            width: 100%;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .qr-controls {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .qr-btn {
+            flex: 1;
+            padding: 0.75rem;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .qr-btn.primary {
+            background: #1a8fd8;
+            color: white;
+        }
+
+        .qr-btn.primary:hover {
+            background: #0f5a7f;
+        }
+
+        .qr-btn.secondary {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .qr-btn.secondary:hover {
+            background: #d0d0d0;
+        }
+
+        .qr-result {
+            padding: 1rem;
+            background: #dbeafe;
+            border-radius: 0.5rem;
+            border-left: 4px solid #0f5a7f;
+            display: none;
+        }
+
+        .qr-result.active {
+            display: block;
+        }
+
+        .qr-result-text {
+            font-size: 0.9rem;
+            word-break: break-all;
+            color: #0f5a7f;
+            font-weight: 600;
+        }
+
+        .scanning-indicator {
+            text-align: center;
+            padding: 1rem;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .scanning-dot {
+            display: inline-block;
+            width: 0.5rem;
+            height: 0.5rem;
+            background: #1a8fd8;
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.3;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                padding: 1.5rem 1rem;
+            }
+
+            .logo {
+                font-size: 1.5rem;
+            }
+
+            .nav-buttons {
+                gap: 0.5rem;
+            }
+
+            .nav-btn {
+                padding: 0.6rem 1rem;
+                font-size: 0.85rem;
+            }
+
+            .tabs {
+                flex-wrap: wrap;
+            }
+
+            .qr-container {
+                width: 95%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <div class="logo">🔍 FakeDetect</div>
+            <p style="font-size: 0.95rem; margin-top: 0.5rem; opacity: 0.95;">Know what's real. Protect yourself from counterfeit products and fraudulent drugs.</p>
+            <div class="nav-buttons">
+                <button class="nav-btn active" onclick="switchTab('scanner')">Product Scanner</button>
+                <button class="nav-btn" onclick="switchTab('database')">Counterfeit DB</button>
+                <button class="nav-btn" onclick="switchTab('education')">Education Hub</button>
+                <button class="nav-btn" onclick="switchTab('report')">Report Fake</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container main-content">
+        <!-- Product Scanner Section -->
+        <div id="scanner" class="content-section active">
+            <div class="card">
+                <div class="card-title">🔍 Product Scanner</div>
+                <div class="card-subtitle">Check red flags for authenticity</div>
+                
+                <div class="search-box">
+                    <input type="text" id="scannerInput" placeholder="Enter product name or scan QR code..." />
+                    <button onclick="openQRScanner()">📱 QR Scan</button>
+                </div>
+
+                <div id="scannerResults" style="display: none;">
+                    <div style="margin-bottom: 1.5rem;">
+                        <h3 style="margin-bottom: 1rem; font-weight: 700; color: #0f5a7f;">Red Flags to Watch For:</h3>
+                        <div class="tabs">
+                            <button class="tab-btn active" onclick="switchTabContent('pharma', this)">Pharmaceuticals</button>
+                            <button class="tab-btn" onclick="switchTabContent('food', this)">Food & Supplements</button>
+                            <button class="tab-btn" onclick="switchTabContent('packaging', this)">Packaging</button>
+                        </div>
+
+                        <div id="pharma-content" class="tab-content active">
+                            <ul class="flag-list">
+                                <li>Blurry or unclear logos and labels</li>
+                                <li>Missing batch or lot numbers</li>
+                                <li>Inconsistent expiry date formatting</li>
+                                <li>Misspelled drug name or manufacturer</li>
+                                <li>Wrong color, shape, or size of tablets/capsules</li>
+                                <li>Poorly printed or damaged packaging</li>
+                                <li>No hologram or security features</li>
+                                <li>Price significantly lower than market rate</li>
+                            </ul>
+                        </div>
+
+                        <div id="food-content" class="tab-content">
+                            <ul class="flag-list">
+                                <li>Missing or unclear origin information</li>
+                                <li>Inconsistent font sizes or spacing on label</li>
+                                <li>Suspicious or unfamiliar certification marks</li>
+                                <li>Spelling errors in ingredients or warnings</li>
+                                <li>Unusual packaging materials or quality</li>
+                                <li>Missing nutrition facts panel</li>
+                                <li>Tampered or loose seals</li>
+                                <li>No contact information for manufacturer</li>
+                            </ul>
+                        </div>
+
+                        <div id="packaging-content" class="tab-content">
+                            <ul class="flag-list">
+                                <li>Color discrepancy from authentic product</li>
+                                <li>Different texture or material feel</li>
+                                <li>QR codes that don't work or link to wrong sites</li>
+                                <li>Serial numbers that are easily scratched off</li>
+                                <li>Packaging feels flimsy or lightweight</li>
+                                <li>Graphics appear pixelated or low resolution</li>
+                                <li>Different barcode format or placement</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 2rem; padding: 1rem; background: #dbeafe; border-radius: 0.5rem; border-left: 4px solid #0f5a7f;">
+                    <strong>💡 Tip:</strong> Compare your product against an authentic one from an official retailer. Note any differences in packaging, weight, color, or feel.
+                </div>
+            </div>
+        </div>
+
+        <!-- Counterfeit Database Section -->
+        <div id="database" class="content-section">
+            <div class="card">
+                <div class="card-title">🗄️ Known Counterfeits Database</div>
+                <div class="card-subtitle">Recently reported fake products and drugs</div>
+
+                <div class="search-box">
+                    <input type="text" id="databaseSearch" placeholder="Search by product name, batch, or location..." />
+                    <button onclick="searchDatabase()">Search</button>
+                </div>
+
+                <div id="databaseResults">
+                    <div class="product-item high-risk">
+                        <div style="display: flex; justify-content: space-between; align-items: start;">
+                            <div style="flex: 1;">
+                                <span class="risk-badge high">HIGH RISK</span>
+                                <div style="font-weight: 700; margin: 0.5rem 0;">Counterfeit Aspirin (500mg)</div>
+                                <p style="font-size: 0.9rem; margin: 0.5rem 0; color: #333;"><strong>Batch:</strong> BX2024-007845</p>
+                                <p style="font-size: 0.9rem; margin: 0.5rem 0; color: #333;"><strong>Origin:</strong> India (Unauthorized)</p>
+                                <p style="font-size: 0.9rem; margin: 0.5rem 0; color: #333;"><strong>Found in:</strong> South Asia, reported Feb 2026</p>
+                                <ul class="flag-list" style="margin-top: 0.75rem;">
+                                    <li>Contains no active ingredient</li>
+                                    <li>Tablets dissolve slowly in water</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="product-item high-risk">
+                        <div style="display: flex; justify-content: space-between; align-items: start;">
+                            <div style="flex: 1;">
+                                <span class="risk-badge high">HIGH RISK</span>
+                                <div style="font-weight: 700; margin: 0.5rem 0;">Fake Vitamin D Supplements</div>
+                                <p style="font-size: 0.9rem; margin: 0.5rem 0; color: #333;"><strong>Brand (Fake):</strong> "VitaMax" (not registered)</p>
+                                <p style="font-size: 0.9rem; margin: 0.5rem 0; color: #333;"><strong>Found in:</strong> Online marketplaces, Jan-Feb 2026</p>
+                                <ul class="flag-list" style="margin-top: 0.75rem;">
+                                    <li>No official website or contact info</li>
+                                    <li>Ingredient list doesn't match label claims</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="product-item medium-risk">
+                        <div style="display: flex; justify-content: space-between; align-items: start;">
+                            <div style="flex: 1;">
+                                <span class="risk-badge medium">MEDIUM RISK</span>
+                                <div style="font-weight: 700; margin: 0.5rem 0;">Counterfeit Honey</div>
+                                <p style="font-size: 0.9rem; margin: 0.5rem 0; color: #333;"><strong>Label:</strong> "Premium Organic Honey"</p>
+                                <p style="font-size: 0.9rem; margin: 0.5rem 0; color: #333;"><strong>Found in:</strong> Local markets, India & Pakistan</p>
+                                <ul class="flag-list" style="margin-top: 0.75rem;">
+                                    <li>Mixed with corn syrup and water</li>
+                                    <li>Missing purity certificates</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="product-item low-risk">
+                        <div style="display: flex; justify-content: space-between; align-items: start;">
+                            <div style="flex: 1;">
+                                <span class="risk-badge low">LOW RISK</span>
+                                <div style="font-weight: 700; margin: 0.5rem 0;">Imitation Cough Syrup</div>
+                                <p style="font-size: 0.9rem; margin: 0.5rem 0; color: #333;"><strong>Location:</strong> East Africa, reported Dec 2025</p>
+                                <ul class="flag-list safe" style="margin-top: 0.75rem;">
+                                    <li>Seller corrected after report</li>
+                                    <li>Now uses approved label</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 2rem; padding: 1rem; background: #fef3c7; border-radius: 0.5rem; border-left: 4px solid #f59e0b;">
+                    <strong>⚠️ Warning:</strong> If you find a product matching these counterfeits, do not consume it. Report it to local health authorities and this database.
+                </div>
+            </div>
+        </div>
+
+        <!-- Education Hub Section -->
+        <div id="education" class="content-section">
+            <div style="margin-bottom: 2rem;">
+                <h2 style="font-size: 1.5rem; font-weight: 700; color: #0f5a7f; margin-bottom: 0.5rem;">📚 Learn & Protect Yourself</h2>
+                <p style="font-size: 0.95rem; color: #666; line-height: 1.6;">Master the skills to identify counterfeit products and drugs. Each course is designed for easy learning and practical application.</p>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 2rem;">
+                <!-- Course 1: Pharma Basics -->
+                <div class="course-card">
+                    <div class="course-header" onclick="toggleCourse(this)">
+                        <div class="course-info">
+                            <div class="course-icon">💊</div>
+                            <div class="course-title">Pharmaceutical Authenticity</div>
+                            <div class="course-duration">4 lessons • 15 mins</div>
+                        </div>
+                        <div class="course-toggle">▼</div>
+                    </div>
+                    <div class="course-content">
+                        <div class="course-description">
+                            Learn to identify counterfeit medicines and pharmaceuticals. WHO estimates 10% of medicines in low/middle-income countries are counterfeit. Fake drugs may contain wrong ingredients, no active compounds, or harmful substances.
+                        </div>
+                        <div class="course-lessons">
+                            <div class="lesson-item" onclick="markLessonComplete(this)">
+                                <span class="lesson-number">1</span>
+                                <div class="lesson-title">The Global Counterfeit Drug Crisis</div>
+                                <div class="lesson-preview">Understand the scale and impact of fake pharmaceuticals worldwide</div>
+                            </div>
+                            <div class="lesson-item" onclick="markLessonComplete(this)">
+                                <span class="lesson-number">2</span>
+                                <div class="lesson-title">Visual Red Flags on Packaging</div>
+                                <div class="lesson-preview">Learn to spot blurry logos, missing batch numbers, and inconsistent printing</div>
+                            </div>
+                            <div class="lesson-item" onclick="markLessonComplete(this)">
+                                <span class="lesson-number">3</span>
+                                <div class="lesson-title">Physical Inspection Techniques</div>
+                                <div class="lesson-preview">Check tablet color, shape, texture, and dissolution patterns</div>
+                            </div>
+                            <div class="lesson-item" onclick="markLessonComplete(this)">
+                                <span class="lesson-number">4</span>
+                                <div class="lesson-title">Verification Resources</div>
+                                <div class="lesson-preview">Find official manufacturer contacts and government databases</div>
+                            </div>
+                        </div>
+                        <div class="course-progress">
+                            <div class="progress-label">
+                                <span>Progress</span>
+                                <span id="progress-1">0/4</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="progress-fill-1" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Course 2: Food Fraud -->
+                <div class="course-card">
+                    <div class="course-header" onclick="toggleCourse(this)">
+                        <div class="course-info">
+                            <div class="course-icon">🥗</div>
+                            <div class="course-title">Food & Beverage Fraud Detection</div>
+                            <div class="course-duration">5 lessons • 20 mins</div>
+                        </div>
+                        <div class="course-toggle">▼</div>
+                    </div>
+                    <div class="course-content">
+                        <div class="course-description">
+                            Discover how to identify adulterated and mislabeled food products. From honey mixed with syrups to milk contaminated with chemicals, learn practical ways to protect your family's food safety.
+                        </div>
+                        <div class="course-lessons">
+                            <div class="lesson-item" onclick="markLessonComplete(this)">
+                                <span class="lesson-number">1</span>
+                                <div class="lesson-title">Common Food Adulterations</div>
+                                <div class="lesson-preview">Understand honey, milk, oil, spice, and beverage fraud tactics</div>
+                            </div>
+                            <div class="lesson-item" onclick="markLessonComplete(this)">
+                                <span class="lesson-number">2</span>
+                                <div class="lesson-title">At-Home Testing Methods</div>
+                                <div class="lesson-preview">Simple tests: honey crystallization, milk foam test, oil water test</div>
+                            </div>
+                            <div class="lesson-item" onclick="markLessonComplete(this)">
+                                <span class="lesson-number">3</span>
+                                <div class="lesson-title">Reading Labels Correctly</div>
+                                <div class="lesson-preview">What to look for: origin, certifications, ingredients, expiry dates</div>
+                            </div>
+                            <div class="lesson-item" onclick="markLessonComplete(this)">
+                                <span class="lesson-number">4</span>
+                                <div class="lesson-title">Packaging & Seal Inspection</div>
+                                <div class="lesson-preview">Spot tampering, fakes seals, and poor-quality packaging materials</div>
+                            </div>
+                            <div class="lesson-item" onclick="markLessonComplete(this)">
+                                <span class="lesson-number">5</span>
+                                <div class="lesson-title">Where to Buy Safely</div>
+                                <div class="lesson-preview">Licensed retailers, certified shops, and direct manufacturer purchases</div>
+                            </div>
+                        </div>
+                        <div class="course-progress">
+                            <div class="progress-label">
+                                <span>Progress</span>
+                                <span id="progress-2">0/5</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="progress-fill-2" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Course 3: Supplements & Vitamins -->
+                <div class="course-card">
+                    <div class="course-header" onclick="toggleCourse(this)">
+                        <div class="course-info">
+                            <div class="course-icon">💉</div>
+                            <div class="course-title">Supplements & Vitamins Safety</div>
+                            <div class="course-duration">3 lessons • 12 mins</div>
+                        </div>
+                        <div class="course-toggle">▼</div>
+                    </div>
+                    <div class="course-content">
+                        <div class="course-description">
+                            Supplements and vitamins are highly counterfeited. Learn to verify authenticity, check certifications, and understand the risks of fake supplements.
+                        </div>
+                        <div class="course-lessons">
+                            <div class="lesson-item" onclick="markLessonComplete(this)">
+                                <span class="lesson-number">1</span>
+                                <div class="lesson-title">Why Supplements Are Targeted</div>
+                                <div class="lesson-preview">Market trends, regulatory gaps, and profit margins</div>
+                            </div>
+                            <div class="lesson-item" onclick="markLessonComplete(this)">
+                                <span class="lesson-number">2</span>
+                                <div class="lesson-title">Certification Marks to Look For</div>
+                                <div class="lesson-preview">USP, NSF, Pharmacopeial standards, and country-specific marks</div>
+                            </div>
+                            <div class="lesson-item" onclick="markLessonComplete(this)">
+                                <span class="lesson-number">3</span>
+                                <div class="lesson-title">Safe Supplement Sourcing</div>
+                                <div class="lesson-preview">Authorized distributors, clinical-grade sources, brand verification</div>
+                            </div>
+                        </div>
+                        <div class="course-progress">
+                            <div class="progress-label">
+                                <span>Progress</span>
+                                <span id="progress-3">0/3</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="progress-fill-3" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Course 4: Technology Verification -->
+                <div class="course-card">
+                    <div class="course-header" onclick="toggleCourse(this)">
+                        <div class="course-info">
+                            <div class="course-icon">🔐</div>
+                            <div class="course-title">Technology-Based Verification</div>
+                            <div class="course-duration">4 lessons • 18 mins</div>
+                        </div>
+                        <div class="course-toggle">▼</div>
+                    </div>
+                    <div class="course-content">
+                        <div class="course-description">
+                            Modern technology helps verify products. Learn to scan QR codes, check holograms, verify batch numbers, and authenticate products using digital tools.
+                        </div>
+                        <div class="course-lessons">
+                            <div class="lesson-item" onclick="markLessonComplete(this)">
+                                <span class="lesson-number">1</span>
+                                <div class="lesson-title">QR Code Scanning & Verification</div>
+                                <div class="lesson-preview">Using the FakeDetect scanner to verify products instantly</div>
+                            </div>
+                            <div class="lesson-item" onclick="markLessonComplete(this)">
+                                <span class="lesson-number">2</span>
+                                <div class="lesson-title">Security Holograms & Features</div>
+                                <div class="lesson-preview">Identifying genuine vs. fake security elements</div>
+                            </div>
+                            <div class="lesson-item" onclick="markLessonComplete(this)">
+                                <span class="lesson-number">3</span>
+                                <div class="lesson-title">Batch Number Databases</div>
+                                <div class="lesson-preview">How to check manufacturer records and health authority databases</div>
+                            </div>
+                            <div class="lesson-item" onclick="markLessonComplete(this)">
+                                <span class="lesson-number">4</span>
+                                <div class="lesson-title">Direct Manufacturer Contact</div>
+                                <div class="lesson-preview">Verifying authenticity directly with brands and producers</div>
+                            </div>
+                        </div>
+                        <div class="course-progress">
+                            <div class="progress-label">
+                                <span>Progress</span>
+                                <span id="progress-4">0/4</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="progress-fill-4" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">✓ Personal Verification Checklist</div>
+                <div class="checklist">
+                    <div class="checklist-item">
+                        <input type="checkbox" id="check1" />
+                        <label for="check1">Compare packaging with authentic product from official store</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="check2" />
+                        <label for="check2">Verify manufacturer details and contact information</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="check3" />
+                        <label for="check3">Check batch/lot number format and clarity</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="check4" />
+                        <label for="check4">Look for holograms, QR codes, or security features</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="check5" />
+                        <label for="check5">Verify price - unusually cheap is a red flag</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="check6" />
+                        <label for="check6">Confirm expiry date is clearly printed and readable</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="check7" />
+                        <label for="check7">Test product if possible (color, smell, dissolution)</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="check8" />
+                        <label for="check8">Contact manufacturer to verify product authenticity</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Report Fake Section -->
+        <div id="report" class="content-section">
+            <div class="card">
+                <div class="card-title">📢 Report a Counterfeit Product</div>
+                <div class="card-subtitle">Help protect your community by reporting fake products</div>
+
+                <form id="reportForm" onsubmit="submitReport(event)" style="display: flex; flex-direction: column; gap: 1rem;">
+                    <div>
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #333;">Product Name *</label>
+                        <input type="text" name="productName" required placeholder="e.g., Aspirin 500mg, Honey, Vitamin D" style="width: 100%; padding: 0.75rem; border: 1px solid #e0e0e0; border-radius: 0.5rem; font-size: 0.95rem;" />
+                    </div>
+
+                    <div>
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #333;">Product Category *</label>
+                        <select name="category" required style="width: 100%; padding: 0.75rem; border: 1px solid #e0e0e0; border-radius: 0.5rem; font-size: 0.95rem;">
+                            <option value="">Select category</option>
+                            <option value="pharmaceutical">Pharmaceutical/Medicine</option>
+                            <option value="supplement">Supplement/Vitamin</option>
+                            <option value="food">Food/Beverage</option>
+                            <option value="skincare">Skincare/Cosmetics</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #333;">Batch/Lot Number (if available)</label>
+                        <input type="text" name="batch" placeholder="e.g., BX2024-007845" style="width: 100%; padding: 0.75rem; border: 1px solid #e0e0e0; border-radius: 0.5rem; font-size: 0.95rem;" />
+                    </div>
+
+                    <div>
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #333;">Where Did You Find It? *</label>
+                        <input type="text" name="location" required placeholder="e.g., Local market, Online store name, Pharmacy name" style="width: 100%; padding: 0.75rem; border: 1px solid #e0e0e0; border-radius: 0.5rem; font-size: 0.95rem;" />
+                    </div>
+
+                    <div>
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #333;">Why Do You Think It's Fake? *</label>
+                        <textarea name="reason" required placeholder="Describe red flags you noticed (packaging, label quality, price, etc.)" style="width: 100%; padding: 0.75rem; border: 1px solid #e0e0e0; border-radius: 0.5rem; font-size: 0.95rem; font-family: inherit; resize: vertical; min-height: 100px;"></textarea>
+                    </div>
+
+                    <div>
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #333;">Your Contact (optional)</label>
+                        <input type="email" name="email" placeholder="your.email@example.com" style="width: 100%; padding: 0.75rem; border: 1px solid #e0e0e0; border-radius: 0.5rem; font-size: 0.95rem;" />
+                    </div>
+
+                    <button type="submit" style="padding: 0.75rem 1.5rem; background: #1a8fd8; color: white; border: none; border-radius: 0.5rem; cursor: pointer; font-weight: 600; font-size: 0.95rem; transition: background 0.3s ease;">Submit Report</button>
+                </form>
+
+                <div id="reportSuccess" style="display: none; margin-top: 1rem; padding: 1rem; background: #dbeafe; border-radius: 0.5rem; border-left: 4px solid #16a34a; color: #15803d;">
+                    <strong>✓ Thank you!</strong> Your report has been received and will be reviewed by our team. This helps protect the community.
+                </div>
+
+                <div style="margin-top: 2rem; padding: 1rem; background: #f0f0f0; border-radius: 0.5rem;">
+                    <strong>Trusted Reporting Channels:</strong>
+                    <ul style="margin-top: 0.75rem; list-style-position: inside;">
+                        <li>WHO Pharmacovigilance: https://www.who.int</li>
+                        <li>FDA MedWatch: https://www.fda.gov/medwatch</li>
+                        <li>Your Local Health Authority</li>
+                        <li>Police Consumer Fraud Department</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- QR Scanner Modal -->
+    <div id="qrModal" class="qr-modal">
+        <div class="qr-container">
+            <div class="qr-header">
+                📱 QR Code Scanner
+                <button class="qr-close" onclick="closeQRScanner()">✕</button>
+            </div>
+            
+            <video id="qrVideo" playsinline></video>
+            
+            <div class="scanning-indicator" id="scanningStatus">
+                <span class="scanning-dot"></span> Scanning...
+            </div>
+            
+            <div class="qr-result" id="qrResult">
+                <div style="margin-bottom: 0.5rem; font-weight: 600; color: #0f5a7f;">QR Code Detected:</div>
+                <div class="qr-result-text" id="qrResultText"></div>
+            </div>
+
+            <div class="qr-controls">
+                <button class="qr-btn primary" onclick="startQRScanning()">Start Scanning</button>
+                <button class="qr-btn secondary" onclick="closeQRScanner()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>FakeDetect © 2026 | Awareness & Education Platform | Not a substitute for professional medical advice</p>
+        <p style="margin-top: 0.75rem; font-size: 0.85rem;">For health emergencies, consult a healthcare professional or call emergency services immediately.</p>
+    </div>
+
+    <script>
+        let qrScannerActive = false;
+        let qrStream = null;
+        let qrScanningInterval = null;
+
+        function switchTab(tabName) {
+            // Hide all sections
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Remove active class from all buttons
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected section
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to clicked button
+            event.target.classList.add('active');
+        }
+
+        function openQRScanner() {
+            document.getElementById('qrModal').classList.add('active');
+            startQRScanning();
+        }
+
+        function closeQRScanner() {
+            document.getElementById('qrModal').classList.remove('active');
+            stopQRScanning();
+        }
+
+        function startQRScanning() {
+            const video = document.getElementById('qrVideo');
+            const scanningStatus = document.getElementById('scanningStatus');
+            
+            // Request camera access
+            navigator.mediaDevices.getUserMedia({
+                video: { facingMode: 'environment' }
+            }).then(stream => {
+                qrStream = stream;
+                video.srcObject = stream;
+                qrScannerActive = true;
+                scanningStatus.style.display = 'block';
+                
+                video.addEventListener('loadedmetadata', () => {
+                    video.play();
+                    scanQRCode(video);
+                });
+            }).catch(err => {
+                scanningStatus.innerHTML = '❌ Camera access denied. Please allow camera permissions.';
+                console.error('Error accessing camera:', err);
+            });
+        }
+
+        function stopQRScanning() {
+            qrScannerActive = false;
+            
+            if (qrStream) {
+                qrStream.getTracks().forEach(track => track.stop());
+                qrStream = null;
+            }
+            
+            if (qrScanningInterval) {
+                clearInterval(qrScanningInterval);
+            }
+        }
+
+        function scanQRCode(video) {
+            const canvas = document.createElement('canvas');
+            const canvasContext = canvas.getContext('2d');
+            
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+
+            qrScanningInterval = setInterval(() => {
+                if (!qrScannerActive) {
+                    clearInterval(qrScanningInterval);
+                    return;
+                }
+
+                canvasContext.drawImage(video, 0, 0, canvas.width, canvas.height);
+                const imageData = canvasContext.getImageData(0, 0, canvas.width, canvas.height);
+                
+                const code = jsQR(imageData.data, imageData.width, imageData.height);
+                
+                if (code) {
+                    handleQRCodeDetected(code.data);
+                }
+            }, 100);
+        }
+
+        function handleQRCodeDetected(data) {
+            const resultElement = document.getElementById('qrResult');
+            const resultText = document.getElementById('qrResultText');
+            const scanningStatus = document.getElementById('scanningStatus');
+            
+            // Try to extract product info from QR code
+            let productInfo = data;
+            
+            // Check if it's a URL
+            if (data.includes('http')) {
+                productInfo = 'URL: ' + data;
+            }
+            // Check for batch/lot number pattern
+            else if (data.match(/[A-Z]{2}\d{4}-\d{6}/)) {
+                productInfo = 'Batch/Lot Number: ' + data;
+            }
+            // Check for barcode-like pattern
+            else if (data.match(/^\d{8,}$/)) {
+                productInfo = 'Product Code: ' + data;
+            }
+            
+            resultText.textContent = productInfo;
+            resultElement.classList.add('active');
+            scanningStatus.style.display = 'none';
+            
+            // Also populate the search input
+            document.getElementById('scannerInput').value = data;
+            
+            // Show results
+            setTimeout(() => {
+                scanProduct();
+            }, 500);
+        }
+
+        function scanProduct() {
+            const input = document.getElementById('scannerInput').value.trim();
+            const results = document.getElementById('scannerResults');
+            
+            if (input.length > 0) {
+                results.style.display = 'block';
+            }
+        }
+
+        function switchTabContent(tabName, button) {
+            // Hide all tab contents
+            const tabContents = button.parentElement.parentElement.querySelectorAll('.tab-content');
+            tabContents.forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Remove active class from all tab buttons
+            button.parentElement.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabName + '-content').classList.add('active');
+            
+            // Add active class to clicked button
+            button.classList.add('active');
+        }
+
+        function searchDatabase() {
+            const input = document.getElementById('databaseSearch').value.trim();
+            // Results are static for now, but this function can be enhanced
+            if (input.length === 0) {
+                alert('Please enter a search term');
+            }
+        }
+
+        function submitReport(event) {
+            event.preventDefault();
+            
+            const form = event.target;
+            const formData = new FormData(form);
+            
+            // Simulate report submission
+            console.log('Report submitted:', Object.fromEntries(formData));
+            
+            // Show success message
+            form.style.display = 'none';
+            document.getElementById('reportSuccess').style.display = 'block';
+            
+            // Reset form after 3 seconds
+            setTimeout(() => {
+                form.reset();
+                form.style.display = 'flex';
+                document.getElementById('reportSuccess').style.display = 'none';
+            }, 3000);
+        }
+
+        function toggleCourse(element) {
+            const header = element;
+            const content = header.nextElementSibling;
+            const toggle = header.querySelector('.course-toggle');
+            
+            // Close other courses
+            document.querySelectorAll('.course-content.active').forEach(el => {
+                if (el !== content) {
+                    el.classList.remove('active');
+                    el.previousElementSibling.querySelector('.course-toggle').classList.remove('expanded');
+                }
+            });
+            
+            // Toggle current course
+            content.classList.toggle('active');
+            toggle.classList.toggle('expanded');
+        }
+
+        function markLessonComplete(element) {
+            element.classList.toggle('completed');
+            updateCourseProgress(element.closest('.course-card'));
+        }
+
+        function updateCourseProgress(courseCard) {
+            const lessons = courseCard.querySelectorAll('.lesson-item');
+            const completed = courseCard.querySelectorAll('.lesson-item.completed').length;
+            
+            // Find which course this is
+            const courses = document.querySelectorAll('.course-card');
+            let courseIndex = 0;
+            courses.forEach((course, index) => {
+                if (course === courseCard) {
+                    courseIndex = index + 1;
+                }
+            });
+            
+            // Update progress display
+            const progressLabel = courseCard.querySelector(`#progress-${courseIndex}`);
+            const progressFill = courseCard.querySelector(`#progress-fill-${courseIndex}`);
+            
+            if (progressLabel && progressFill) {
+                progressLabel.textContent = `${completed}/${lessons.length}`;
+                const percentage = (completed / lessons.length) * 100;
+                progressFill.style.width = percentage + '%';
+            }
+        }
+    </script>
+</body>
+</html>
